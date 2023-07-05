@@ -1,4 +1,5 @@
 package sootup.java.sourcecode.frontend;
+
 /*-
  * #%L
  * Soot - a J*va Optimization Framework
@@ -79,9 +80,12 @@ public class WalaIRToJimpleConverter {
   private final HashMap<String, String> walaToSootNameTable;
   private Set<SootField> sootFields;
 
+  public Map<AstMethod, Map<Integer, Local>> methodLocalMaps = new HashMap<>();
+
   public WalaIRToJimpleConverter(@Nonnull Set<String> sourceDirPath) {
     srcNamespace = new JavaSourcePathAnalysisInputLocation(sourceDirPath);
-    // TODO: [ms] get identifierFactory from view - view can hold a different implementation
+    // TODO: [ms] get identifierFactory from view - view can hold a different
+    // implementation
     identifierFactory = JavaIdentifierFactory.getInstance();
     clsWithInnerCls = new HashMap<>();
     walaToSootNameTable = new HashMap<>();
@@ -89,7 +93,8 @@ public class WalaIRToJimpleConverter {
 
   public WalaIRToJimpleConverter(@Nonnull Set<String> sourceDirPath, @Nonnull SourceType srcType) {
     srcNamespace = new JavaSourcePathAnalysisInputLocation(srcType, sourceDirPath);
-    // TODO: [ms] get identifierFactory from view - view can hold a different implementation
+    // TODO: [ms] get identifierFactory from view - view can hold a different
+    // implementation
     identifierFactory = JavaIdentifierFactory.getInstance();
     clsWithInnerCls = new HashMap<>();
     walaToSootNameTable = new HashMap<>();
@@ -271,12 +276,15 @@ public class WalaIRToJimpleConverter {
             classSig, walaMethod.getName().toString(), returnType.toString(), sigs);
 
     Body body = createBody(methodSig, modifiers, walaMethod);
-    return new WalaSootMethod(
-        new OverridingBodySource(methodSig, body),
-        methodSig,
-        modifiers,
-        thrownExceptions,
-        debugInfo);
+    WalaSootMethod wsm =
+        new WalaSootMethod(
+            new OverridingBodySource(methodSig, body),
+            methodSig,
+            modifiers,
+            thrownExceptions,
+            debugInfo);
+    wsm.localMap = this.methodLocalMaps.get(walaMethod);
+    return wsm;
   }
 
   public Type convertType(TypeReference type) {
@@ -402,7 +410,7 @@ public class WalaIRToJimpleConverter {
       modifiers.add(Modifier.ENUM);
     }
     if ((modif & ClassConstants.ACC_FINAL) != 0) modifiers.add(Modifier.FINAL);
-    // TODO:  annotation
+    // TODO: annotation
     return modifiers;
   }
 
@@ -428,7 +436,9 @@ public class WalaIRToJimpleConverter {
         DebuggingInformation debugInfo = walaMethod.debugInfo();
         Position bodyPos = debugInfo.getCodeBodyPosition();
 
-        /* Look AsmMethodSourceContent.getBody, see AsmMethodSourceContent.emitLocals(); */
+        /*
+         * Look AsmMethodSourceContent.getBody, see AsmMethodSourceContent.emitLocals();
+         */
 
         if (!Modifier.isStatic(modifiers)) {
           JavaClassType thisType = (JavaClassType) methodSignature.getDeclClassType();
@@ -504,7 +514,8 @@ public class WalaIRToJimpleConverter {
           final boolean validMethodLeaving =
               !(stmt instanceof JReturnVoidStmt || stmt instanceof JThrowStmt);
           if (index2Stmt.isEmpty() || validMethodLeaving || isImplicitLastStmtTargetOfBranchStmt) {
-            // TODO? [ms] InstructionPosition of last line in the method seems strange to me ->
+            // TODO? [ms] InstructionPosition of last line in the method seems strange to me
+            // ->
             // maybe use lastLine with
             // startcol: -1 because it does not exist in the source explicitly?
             ret =
@@ -527,24 +538,32 @@ public class WalaIRToJimpleConverter {
           final IBasicBlock<SSAInstruction> block = catchBlockEntry.getKey();
           final TypeReference[] exceptionTypes = catchBlockEntry.getValue();
 
-          /*          final Collection<IBasicBlock<SSAInstruction>> exceptionalPredecessors = cfg.getExceptionalPredecessors(block);
-
-                    for (IBasicBlock<SSAInstruction> exceptionalPredecessor : exceptionalPredecessors) {
-                      Stmt from = index2Stmt.get(exceptionalPredecessor.getFirstInstructionIndex());
-                      Stmt to = index2Stmt.get(exceptionalPredecessor.getLastInstructionIndex() + 1); // exclusive!
-
-                      Stmt handlerStmt = index2Stmt.get(block.getFirstInstructionIndex());
-                      for (TypeReference type : exceptionTypes) {
-                        ClassType exception = (ClassType) convertType(type);
-                        traps.add(new Trap(exception, from, to, handlerStmt));
-                      }
-                    }
-          */
+          /*
+           * final Collection<IBasicBlock<SSAInstruction>> exceptionalPredecessors =
+           * cfg.getExceptionalPredecessors(block);
+           *
+           * for (IBasicBlock<SSAInstruction> exceptionalPredecessor :
+           * exceptionalPredecessors) {
+           * Stmt from =
+           * index2Stmt.get(exceptionalPredecessor.getFirstInstructionIndex());
+           * Stmt to = index2Stmt.get(exceptionalPredecessor.getLastInstructionIndex() +
+           * 1); // exclusive!
+           *
+           * Stmt handlerStmt = index2Stmt.get(block.getFirstInstructionIndex());
+           * for (TypeReference type : exceptionTypes) {
+           * ClassType exception = (ClassType) convertType(type);
+           * traps.add(new Trap(exception, from, to, handlerStmt));
+           * }
+           * }
+           */
         }
 
         MutableBlockStmtGraph graph = new MutableBlockStmtGraph();
         graph.initializeWith(stmtList, branchingMap, traps);
 
+        Map<Integer, Local> lmap = instConverter.getLocals();
+        methodLocalMaps.put(walaMethod, lmap);
+        // System.out.println(instConverter.getLocals());
         return Body.builder(graph)
             .setMethodSignature(methodSignature)
             .setLocals(localGenerator.getLocals())
@@ -630,8 +649,8 @@ public class WalaIRToJimpleConverter {
   }
 
   /*
-   *   converts Wala Position to Soots Position
-   * */
+   * converts Wala Position to Soots Position
+   */
   public static sootup.core.model.Position convertPosition(Position instructionPosition) {
     return new FullPosition(
         instructionPosition.getFirstLine(),

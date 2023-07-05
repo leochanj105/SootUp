@@ -1,4 +1,5 @@
 package sootup.java.sourcecode.frontend;
+
 /*-
  * #%L
  * Soot - a J*va Optimization Framework
@@ -22,11 +23,14 @@ package sootup.java.sourcecode.frontend;
  */
 import com.ibm.wala.cast.loader.AstMethod.DebuggingInformation;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.Function;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import sootup.core.frontend.BodySource;
 import sootup.core.frontend.OverridingBodySource;
+import sootup.core.jimple.basic.Local;
 import sootup.core.jimple.basic.NoPositionInformation;
 import sootup.core.model.Modifier;
 import sootup.core.model.SootMethod;
@@ -39,6 +43,8 @@ import sootup.java.core.JavaSootMethod;
 public class WalaSootMethod extends JavaSootMethod {
 
   @Nullable private final DebuggingInformation debugInfo;
+
+  public Map<Integer, Local> localMap = new HashMap<>();
 
   /**
    * Constructs a SootMethod object with the given attributes.

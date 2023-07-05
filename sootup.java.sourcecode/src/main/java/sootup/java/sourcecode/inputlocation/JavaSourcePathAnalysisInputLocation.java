@@ -97,7 +97,8 @@ public class JavaSourcePathAnalysisInputLocation implements AnalysisInputLocatio
       @Nullable SourceType srcType, @Nonnull Set<String> sourcePaths) {
     this(sourcePaths, null);
     setSpecifiedAsBuiltInByUser(srcType);
-    // this.classProvider = new WalaJavaClassProvider(sourcePaths, exclusionFilePath,
+    // this.classProvider = new WalaJavaClassProvider(sourcePaths,
+    // exclusionFilePath,
     // DefaultSourceTypeSpecifier.getInstance());
   }
 

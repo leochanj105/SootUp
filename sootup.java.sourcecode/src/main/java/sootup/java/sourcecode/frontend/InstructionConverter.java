@@ -1,4 +1,5 @@
 package sootup.java.sourcecode.frontend;
+
 /*-
  * #%L
  * Soot - a J*va Optimization Framework
@@ -340,7 +341,8 @@ public class InstructionConverter {
             WalaIRToJimpleConverter.convertPositionInfo(
                 debugInfo.getInstructionPosition(inst.iIndex()), operandPos));
 
-    // [ms] handling multiple assertions in one body -> each has an own nop -> own link to target
+    // [ms] handling multiple assertions in one body -> each has an own nop -> own
+    // link to target
     int stmtAfterAssertion = -42 - inst.iIndex();
     stmt2iIndex.put(stmtAfterAssertion, nopStmt);
 
@@ -396,8 +398,8 @@ public class InstructionConverter {
     stmts.add(throwStmt);
 
     // add nop in the end
-    stmts.add(
-        nopStmt); // TODO [LL] This should be removed later [ms] with the following statement after
+    stmts.add(nopStmt); // TODO [LL] This should be removed later [ms] with the following statement
+    // after
     // assert
     return stmts;
   }
@@ -596,7 +598,8 @@ public class InstructionConverter {
     // is it just variable declaration?
     if (type == NullType.getInstance()) {
       // FIXME: [ms] determine type of def side
-      // if null is assigned or if its just a local declaration we can't use the right side (i.e.
+      // if null is assigned or if its just a local declaration we can't use the right
+      // side (i.e.
       // null) to determine the locals type
       type = UnknownType.getInstance();
     }
@@ -1012,7 +1015,8 @@ public class InstructionConverter {
     IBinaryOpInstruction.IOperator operator = binOpInst.getOperator();
     if (operator.equals(IBinaryOpInstruction.Operator.ADD)) {
       if (type.toString().equals("java.lang.String")) {
-        // from wala java source code frontend we get also string addition(concatenation).
+        // from wala java source code frontend we get also string
+        // addition(concatenation).
         Immediate result = getLocal(type, def);
         return convertStringAddition(op1, op2, result, type, binOpInst.iIndex(), debugInfo);
       }
@@ -1153,6 +1157,7 @@ public class InstructionConverter {
     }
     if (symbolTable.isParameter(valueNumber)) {
       Local para = localGenerator.getParameterLocal(valueNumber - 1);
+      locals.put(valueNumber, para);
       if (para != null) {
         return para;
       }
@@ -1220,5 +1225,9 @@ public class InstructionConverter {
       }
     }
     return false;
+  }
+
+  public Map<Integer, Local> getLocals() {
+    return this.locals;
   }
 }
